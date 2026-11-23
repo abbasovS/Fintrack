@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-monthly-budgets
+      author: fintrack
+      changes:
+        - createTable:
+            tableName: monthly_budgets
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_monthly_budgets
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: month_start
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: monthly_budgets
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_monthly_budgets_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: monthly_budgets
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_monthly_budgets_category
+        - addUniqueConstraint:
+            tableName: monthly_budgets
+            columnNames: user_id, category_id, month_start
+            constraintName: uk_monthly_budget_user_category_month
+        - createIndex:
+            tableName: monthly_budgets
+            indexName: idx_monthly_budgets_user_month
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: month_start

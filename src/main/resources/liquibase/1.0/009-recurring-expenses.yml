@@ -1,0 +1,157 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-recurring-expenses
+      author: fintrack
+      changes:
+        - createTable:
+            tableName: recurring_expense_rules
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_recurring_expense_rules
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: frequency
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: day_of_week
+                  type: VARCHAR(10)
+              - column:
+                  name: day_of_month
+                  type: INT
+              - column:
+                  name: skip_weekends
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: DATE
+              - column:
+                  name: next_run_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: recurring_expense_rules
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_recurring_expense_rules_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: recurring_expense_rules
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_recurring_expense_rules_category
+        - createIndex:
+            tableName: recurring_expense_rules
+            indexName: idx_recurring_expense_rules_user
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: recurring_expense_rules
+            indexName: idx_recurring_expense_rules_status_next
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: next_run_date
+        - createTable:
+            tableName: recurring_expense_occurrences
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_recurring_expense_occurrences
+                    nullable: false
+              - column:
+                  name: rule_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scheduled_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: recurring_expense_occurrences
+            baseColumnNames: rule_id
+            referencedTableName: recurring_expense_rules
+            referencedColumnNames: id
+            constraintName: fk_recurring_expense_occurrences_rule
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: recurring_expense_occurrences
+            baseColumnNames: transaction_id
+            referencedTableName: transactions
+            referencedColumnNames: id
+            constraintName: fk_recurring_expense_occurrences_transaction
+            onDelete: SET NULL
+        - addUniqueConstraint:
+            tableName: recurring_expense_occurrences
+            columnNames: rule_id, scheduled_date
+            constraintName: uk_recurring_expense_occurrence_rule_date
+        - addUniqueConstraint:
+            tableName: recurring_expense_occurrences
+            columnNames: transaction_id
+            constraintName: uk_recurring_expense_occurrence_transaction
+        - createIndex:
+            tableName: recurring_expense_occurrences
+            indexName: idx_recurring_expense_occurrences_rule_date
+            columns:
+              - column:
+                  name: rule_id
+              - column:
+                  name: scheduled_date

@@ -1,0 +1,82 @@
+
+spring:
+  application:
+    name: fintrack
+
+  config:
+    import:
+      - "optional:file:./.env[.properties]"
+      - "vault://"
+      - "optional:consul:"
+
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: TOKEN
+      token: ${VAULT_TOKEN}
+      kv:
+        enabled: true
+        backend: secret
+        backend-version: 2
+        default-context: fintrack
+
+    consul:
+      host: localhost
+      port: 8500
+      config:
+        enabled: true
+        format: YAML
+        prefix: config
+        default-context: fintrack
+        profile-separator: "-"
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog-master.yml
+
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:true}
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
+server:
+  port: 8081
+
+management:
+    server:
+      port: 8082
+    endpoints:
+      web:
+        exposure:
+          include: health,prometheus
+
+fintrack:
+  currency: ${FINTRACK_CURRENCY:AZN}
+  time-zone: ${FINTRACK_TIME_ZONE:Asia/Baku}
+  recurring-expenses:
+    cron: "${FINTRACK_RECURRING_EXPENSES_CRON:0 55 23 * * *}"
+  mail:
+    from: ${MAIL_FROM:${SMTP_USERNAME:}}

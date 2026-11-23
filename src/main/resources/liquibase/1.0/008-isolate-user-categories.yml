@@ -1,0 +1,78 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-isolate-user-categories
+      author: fintrack
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE
+                old_category RECORD;
+                owner_user RECORD;
+                target_id BIGINT;
+              BEGIN
+                FOR old_category IN
+                  SELECT id, name, type FROM categories WHERE user_id IS NULL
+                LOOP
+                  FOR owner_user IN SELECT id FROM users LOOP
+                    SELECT id INTO target_id
+                    FROM categories
+                    WHERE user_id = owner_user.id
+                      AND lower(name) = lower(old_category.name)
+                      AND type = old_category.type
+                    ORDER BY id
+                    LIMIT 1;
+
+                    IF target_id IS NULL THEN
+                      INSERT INTO categories (name, type, user_id)
+                      VALUES (old_category.name, old_category.type, owner_user.id)
+                      RETURNING id INTO target_id;
+                    END IF;
+
+                    UPDATE transactions
+                    SET category_id = target_id
+                    WHERE category_id = old_category.id
+                      AND user_id = owner_user.id;
+                    target_id := NULL;
+                  END LOOP;
+                END LOOP;
+
+                DELETE FROM categories WHERE user_id IS NULL;
+
+                FOR old_category IN
+                  SELECT id, name FROM subscription_categories WHERE user_id IS NULL
+                LOOP
+                  FOR owner_user IN SELECT id FROM users LOOP
+                    SELECT id INTO target_id
+                    FROM subscription_categories
+                    WHERE user_id = owner_user.id
+                      AND lower(name) = lower(old_category.name)
+                    ORDER BY id
+                    LIMIT 1;
+
+                    IF target_id IS NULL THEN
+                      INSERT INTO subscription_categories (name, user_id)
+                      VALUES (old_category.name, owner_user.id)
+                      RETURNING id INTO target_id;
+                    END IF;
+
+                    UPDATE subscriptions
+                    SET category_id = target_id
+                    WHERE category_id = old_category.id
+                      AND user_id = owner_user.id;
+                    target_id := NULL;
+                  END LOOP;
+                END LOOP;
+
+                DELETE FROM subscription_categories WHERE user_id IS NULL;
+              END;
+              $$;
+        - addNotNullConstraint:
+            tableName: categories
+            columnName: user_id
+            columnDataType: BIGINT
+        - addNotNullConstraint:
+            tableName: subscription_categories
+            columnName: user_id
+            columnDataType: BIGINT

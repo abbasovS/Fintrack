@@ -1,0 +1,178 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-subscriptions
+      author: fintrack
+      changes:
+        - createTable:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_subscription_categories
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: subscription_categories
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_subscription_categories_user
+        - addUniqueConstraint:
+            tableName: subscription_categories
+            columnNames: user_id, name
+            constraintName: uk_subscription_categories_user_name
+        - createIndex:
+            tableName: subscription_categories
+            indexName: idx_subscription_categories_user
+            columns:
+              - column:
+                  name: user_id
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Video və musiqi
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: İdman və sağlamlıq
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Proqram təminatı və bulud
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Rabitə və internet
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Təhsil
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Nəqliyyat
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Ev xidmətləri
+        - insert:
+            tableName: subscription_categories
+            columns:
+              - column:
+                  name: name
+                  value: Digər
+        - createTable:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_subscriptions
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: billing_interval
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: next_billing_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: note
+                  type: VARCHAR(500)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: subscriptions
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_subscriptions_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: subscriptions
+            baseColumnNames: category_id
+            referencedTableName: subscription_categories
+            referencedColumnNames: id
+            constraintName: fk_subscriptions_category
+        - createIndex:
+            tableName: subscriptions
+            indexName: idx_subscriptions_user_due_date
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: next_billing_date
+        - createIndex:
+            tableName: subscriptions
+            indexName: idx_subscriptions_user_status
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: status

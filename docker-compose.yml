@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fintrack
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - fintrack_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fintrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: fintrack-vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    cap_add:
+      - IPC_LOCK
+    command: server
+    volumes:
+      - ./vault/config:/vault/config:ro
+      - vault_data:/vault/file
+
+
+  consul:
+    image: hashicorp/consul:1.21
+    container_name: fintrack-consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"
+    command: agent -server -ui -node=fintrack-consul -bootstrap-expect=1 -client=0.0.0.0 -data-dir=/consul/data
+    volumes:
+      - consul_data:/consul/data
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fintrack-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fintrack-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+
+volumes:
+  fintrack_postgres_data:
+  vault_data:
+  consul_data:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,26 @@
+
+  databaseChangeLog:
+    - include:
+        file: liquibase/1.0/001-create-users.yml
+
+    - include:
+        file: liquibase/1.0/002-create-categories.yml
+
+    - include:
+        file: liquibase/1.0/003-create-transactions.yml
+    - include:
+        file: liquibase/1.0/004-use-timezone-timestamps.yml
+    - include:
+        file: liquibase/1.0/005-add-category-ownership-and-report-indexes.yml
+    - include:
+        file: liquibase/1.0/006-create-subscriptions.yml
+    - include:
+        file: liquibase/1.0/007-track-subscription-billing-cycles.yml
+    - include:
+        file: liquibase/1.0/008-isolate-user-categories.yml
+    - include:
+        file: liquibase/1.0/009-recurring-expenses.yml
+    - include:
+        file: liquibase/1.0/010-monthly-budgets.yml
+    - include:
+        file: liquibase/1.0/011-email-verification.yml

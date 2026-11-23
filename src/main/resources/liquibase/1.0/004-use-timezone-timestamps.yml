@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-use-timezone-timestamps
+      author: fintrack
+      changes:
+        - modifyDataType:
+            tableName: users
+            columnName: created_at
+            newDataType: TIMESTAMP WITH TIME ZONE
+        - modifyDataType:
+            tableName: transactions
+            columnName: created_at
+            newDataType: TIMESTAMP WITH TIME ZONE

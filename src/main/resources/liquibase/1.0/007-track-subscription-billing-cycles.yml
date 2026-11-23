@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-track-subscription-billing-cycles
+      author: fintrack
+      changes:
+        - addColumn:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: billing_anchor_date
+                  type: DATE
+                  constraints:
+                    nullable: true
+        - update:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: billing_anchor_date
+                  valueComputed: next_billing_date
+        - addNotNullConstraint:
+            tableName: subscriptions
+            columnName: billing_anchor_date
+            columnDataType: DATE
+        - createTable:
+            tableName: subscription_occurrences
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_subscription_occurrences
+                    nullable: false
+              - column:
+                  name: subscription_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expected_amount
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actual_amount
+                  type: DECIMAL(19,2)
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: PLANNED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: paid_on
+                  type: DATE
+              - column:
+                  name: transaction_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: subscription_occurrences
+            baseColumnNames: subscription_id
+            referencedTableName: subscriptions
+            referencedColumnNames: id
+            constraintName: fk_subscription_occurrences_subscription
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: subscription_occurrences
+            baseColumnNames: transaction_id
+            referencedTableName: transactions
+            referencedColumnNames: id
+            constraintName: fk_subscription_occurrences_transaction
+            onDelete: SET NULL
+        - addUniqueConstraint:
+            tableName: subscription_occurrences
+            columnNames: subscription_id, due_date
+            constraintName: uk_subscription_occurrences_cycle
+        - addUniqueConstraint:
+            tableName: subscription_occurrences
+            columnNames: transaction_id
+            constraintName: uk_subscription_occurrences_transaction
+        - createIndex:
+            tableName: subscription_occurrences
+            indexName: idx_subscription_occurrences_due_status
+            columns:
+              - column:
+                  name: due_date
+              - column:
+                  name: status
